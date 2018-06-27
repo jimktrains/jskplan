@@ -14,13 +14,13 @@
         <functionParameter type="out text" />
         <functionDefinition language="plpgsql" sqlFormat="pgsql8">
           <![CDATA[
-          DECLARE  
+          DECLARE
               our_epoch bigint := 1314220021721;
               seq_id bigint;
               now_millis bigint;
               shard_id int := 5;
               result bigint := 0;
-          BEGIN  
+          BEGIN
               -- there is a typo here in the online example, which is corrected here
               SELECT nextval('sf_table_id_seq') % 1024 INTO seq_id;
 
@@ -39,28 +39,45 @@
     </function>
     <function name="new_issue_id" returns="trigger" owner="ROLE_OWNER">
         <functionDefinition language="plpgsql" sqlFormat="pgsql8">
-          BEGIN  
+          BEGIN
             IF NEW.issue_id IS NULL THEN
               NEW.issue_id := NEW.parent::ltree || sf_next_id();
-          END;  
+          END;
         </functionDefinition>
         <grant operation="EXECUTE" role="ROLE_OWNER" />
     </function>
     <function name="update_old_state" returns="trigger" owner="ROLE_OWNER">
         <functionDefinition language="plpgsql" sqlFormat="pgsql8">
-          BEGIN  
+          BEGIN
             IF NEW.issue_id IS NULL THEN
-              NEW.issue_id := NEW.parent::ltree || sf_next_id();
-          END;  
+              NEW.issue_id := coalesce(NEW.parent,'')::ltree || sf_next_id();
+          END;
         </functionDefinition>
         <grant operation="EXECUTE" role="ROLE_OWNER" />
     </function>
-    <trigger name="auto_new_issue_id" 
+    <trigger name="auto_new_issue_id"
              table="issue"
              when="BEFORE"
              event="INSERT"
              forEach="ROW"
              function="EXECUTE new_issue_id"
+             sqlFormat="pgsql8" />
+    <function name="update_points" returns="trigger" owner="ROLE_OWNER">
+        <functionDefinition language="plpgsql" sqlFormat="pgsql8">
+          BEGIN
+            UPDATE issue
+            SET points = points - OLD.points + NEW.points
+            WHERE issue.issue_id @> NEW.issue_id;
+          END;
+        </functionDefinition>
+        <grant operation="EXECUTE" role="ROLE_OWNER" />
+    </function>
+    <trigger name="auto_update_points"
+             table="issue"
+             when="AFTER"
+             event="INSERT"
+             forEach="ROW"
+             function="EXECUTE update_points"
              sqlFormat="pgsql8" />
 
     <table name="issue" primaryKey="issue_id" owner="ROLE_OWNER" >
@@ -71,8 +88,9 @@
       <column name="current_state" foreignTable="state" foreignColumn="state_id" default="'FxMFsOgAFBU'" />
       <column name="old_state" foreignTable="state" foreignColumn="state_id" default="'FxMFsOgAFBU'" />
       <column name="assignee" foreignTable="member" foreignColumn="member_id" />
-  
-      <constraint name="state_transition_fk" type="FOREIGN KEY" 
+      <column name="points" type="decimal(6,1)" default="0.0" null="false" />
+
+      <constraint name="state_transition_fk" type="FOREIGN KEY"
                   definition="(old_state, current_state)" foreignTable="state_transition" />
     </table>
     <table name="state" primaryKey="state_id" owner="ROLE_OWNER">
@@ -115,7 +133,7 @@
       <column name="email" type="text" null="false"/>
 
       <constraint name="email_has_at" type="check" definition="email ~ '.+@.+'" />
-    </table> 
+    </table>
   </schema>
 </dbsteward>
 
