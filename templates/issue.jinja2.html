@@ -1,7 +1,7 @@
 <html>
   <body>
     {% for parent in parents %}
-    <div style="margin-left: {{parent['n']}}0px"><a href="{{url_for('issue', issue_id=parent['issue_id'])}}">{{parent['issue_id']}}</a> &mdash; {{parent['title']}} ({{parent['completed_points']}}/{{parent['points']}})</div>
+    <div style="margin-left: {{parent['m']}}0px"><a href="{{url_for('issue', issue_id=parent['issue_id'])}}">{{parent['issue_id']}}</a> &mdash; {{parent['title']}} ({{parent['completed_points']}}/{{parent['points']}})</div>
     {% endfor %}
     <h1>Issue {{issue['issue_id']}} &mdash; {{issue['title']}}</h1>
     <div>

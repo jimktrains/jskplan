@@ -69,3 +69,6 @@ insert into note
 values
 (2, 'jim@jimkeener.com@testorg', 'testorg', 'this is a test')
 ;
+
+select * from issue_parents(2);
+select * from issue_children(2);

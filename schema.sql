@@ -149,3 +149,99 @@ on issue
 for each row
 execute procedure update_points();
 
+
+create or replace function jskplan_create_role(role text, orgrole text, passwd text)
+returns boolean
+as $$
+declare
+  pgrole text = role || '@' || orgrole;
+begin
+  create role pgrole;
+  grant orgrole to pgrole;
+  --alter role pgrole with password passwd;
+  alter role pgrole with login;
+  grant connect on database jskplan to pgrole;
+  grant usage on SCHEMA jskplan to pgrole;
+  grant select on all tables in schema jskplan to pgrole;
+
+  return true;
+end; $$
+language plpgsql;
+
+create type issue_child as (n int, childpath text, childofprevious boolean, issue_id bigint, title text, points int, completed_points int);
+create or replace function issue_children(parent_issue_id bigint)
+returns setof issue_child
+as $$
+begin
+    return query
+      with recursive child_issues as (
+        select 1 as n,
+               to_char(issue_id, '000000') as path,
+               issue_id,
+               title,
+               coalesce(points, 0) as points,
+               coalesce(completed_points, 0) as completed_points
+        from jskplan.issue
+        where parent = parent_issue_id
+
+        union
+
+        select (child_issues.n + 1) as n,
+               child_issues.path || to_char(issue.issue_id, '000000') as path,
+               issue.issue_id,
+               issue.title,
+               coalesce(issue.points, 0) as points,
+               coalesce(issue.completed_points, 0) as completed_points
+        from jskplan.issue
+        join child_issues on child_issues.issue_id = issue.parent
+      )
+      select n,
+             path,
+             n > (lag(n) over (order by path)) as childofprevious,
+             issue_id,
+             title,
+             points,
+             completed_points
+      from child_issues
+      order by path asc;
+end; $$
+language plpgsql;
+
+create type issue_parent as (n int, m int, issue_id bigint, title text, points int, completed_points int);
+create or replace function issue_parents(parent_issue_id bigint)
+returns setof issue_parent
+as $$
+begin
+    return query
+      with recursive parent_issues as (
+        select 0 as n,
+               parent,
+               issue_id,
+               title,
+               coalesce(points, 0) as points,
+               coalesce(completed_points, 0) as completed_points
+        from jskplan.issue
+        where issue_id = parent_issue_id
+
+        union
+
+        select (parent_issues.n - 1) as n,
+               issue.parent,
+               issue.issue_id,
+               issue.title,
+               coalesce(issue.points, 0) as points,
+               coalesce(issue.completed_points, 0) as completed_points
+        from jskplan.issue
+        join parent_issues on parent_issues.parent = issue.issue_id
+      )
+      select n,
+             1+(n - min(n) over ()) as m,
+             issue_id,
+             title,
+             points,
+             completed_points
+      from parent_issues
+      where n < 0
+      order by n asc;
+end; $$
+language plpgsql;
