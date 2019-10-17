@@ -1,0 +1,20 @@
+<html>
+  <body>
+    <table>
+      <thead>
+        <tr>
+          <th>Link</th>
+          <th>Period</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for sprint in sprints %}
+        <tr>
+          <td><a href="{{url_for('sprint', sprint_id=sprint['sprint_id'])}}">{{sprint['sprint_id']}}</a></td>
+          <td>{{sprint['during']}}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+    </table>
+  </body>
+</html>

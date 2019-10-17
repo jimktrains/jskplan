@@ -1,0 +1,43 @@
+<html>
+  <body>
+    {% for parent in parents %}
+    <div style="margin-left: {{parent['n']}}0px"><a href="{{url_for('issue', issue_id=parent['issue_id'])}}">{{parent['issue_id']}}</a> &mdash; {{parent['title']}} ({{parent['completed_points']}}/{{parent['points']}})</div>
+    {% endfor %}
+    <h1>Issue {{issue['issue_id']}} &mdash; {{issue['title']}}</h1>
+    <div>
+    <div>
+      Points: {{issue['completed_points']}}/{{issue['points']}}
+    </div>
+    {% for child in children %}
+    <div style="margin-left: {{child['n']}}0px"><a href="{{url_for('issue', issue_id=child['issue_id'])}}">{{child['issue_id']}}</a> &mdash; {{child['title']}} ({{child['completed_points']}}/{{child['points']}})</div>
+    {% endfor %}
+    <form action="/issue" method=post>
+      <input type=hidden name=parent value={{issue['issue_id']}}>
+      <label for=title>New Issue Title</label>
+      <input id=title name=title>
+      <input type=submit value="Create Issue">
+    </form>
+    </div>
+    <p>
+    {% if issue['description'] %}
+    {{issue['description']}}
+    {% else %}
+    <i>No Description</i>
+    {% endif %}
+    </p>
+
+    <h2>Notes</h2>
+    {% for note in notes %}
+    <div>
+      <div><small>{{note['author']}} &mdash; {{note['created_at']}}</small></div>
+      {{note['body']}}
+    </div>
+    {% endfor %}
+    <hr>
+    <form action="/note" method=post>
+      <input type=hidden name=issue_id value={{issue['issue_id']}}>
+      <textarea name=body id=body></textarea>
+      <input type=submit value="Add Note">
+    </form>
+  </body>
+</html>

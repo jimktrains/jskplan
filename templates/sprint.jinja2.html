@@ -1,0 +1,21 @@
+<html>
+  <body>
+    <h1>Sprint {{sprint['sprint_id']}}</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Link</th>
+          <th>Title</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for issue in issues %}
+        <tr>
+          <td><a href="{{url_for('issue', issue_id=issue['issue_id'])}}">{{issue['issue_id']}}</a></td>
+          <td>{{issue['title']}}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+    </table>
+  </body>
+</html>
