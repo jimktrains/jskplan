@@ -4,6 +4,7 @@
       <thead>
         <tr>
           <th>Link</th>
+          <th>Title</th>
           <th>Period</th>
         </tr>
       </thead>
@@ -11,10 +12,25 @@
       {% for sprint in sprints %}
         <tr>
           <td><a href="{{url_for('sprint', sprint_id=sprint['sprint_id'])}}">{{sprint['sprint_id']}}</a></td>
+          <td>{{sprint['title']}}</td>
           <td>{{sprint['during']}}</td>
         </tr>
       {% endfor %}
     </tbody>
     </table>
+    <form method=post action="{{url_for('sprint_new_post')}}">
+      <fieldset>
+        <label for=title>Title</label>
+        <input type=textid=title name=title>
+
+        <label for=start>Start</label>
+        <input type=date id=start name=start>
+
+        <label for=end>Points</label>
+        <input type=date id=end name=end>
+
+        <input type=submit value="New Sprint">
+      </fieldset>
+    </form>
   </body>
 </html>

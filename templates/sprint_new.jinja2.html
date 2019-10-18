@@ -1,0 +1,22 @@
+{% extends "base.jinja2.html" %}
+{% block title %}New Sprint{% endblock %}
+{% block content %}
+  <h1>New Sprint</h1>
+    <form method=post>
+      <fieldset>
+        <div>
+          <label for=title>Title</label>
+          <input type=date id=title name=title>
+        </div>
+        <div>
+          <label for=start>Start</label>
+          <input type=date id=start name=start>
+        </div>
+        <div>
+          <label for=end>Points</label>
+          <input type=date id=end name=end>
+        </div>
+        <input type=submit value="Create">
+      </fieldset>
+    </form>
+{% endblock %}

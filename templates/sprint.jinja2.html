@@ -17,5 +17,11 @@
       {% endfor %}
     </tbody>
     </table>
+    <form action="/issue" method=post>
+      <input type=hidden name=sprint_id value={{sprint['sprint_id']}}>
+      <label for=title>New Issue Title</label>
+      <input id=title name=title>
+      <input type=submit value="Create Issue">
+    </form>
   </body>
 </html>

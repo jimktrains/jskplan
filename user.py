@@ -11,7 +11,7 @@ def dbrole(user, organization):
     return user + "@" + organization
 
 def password_hash1(user, organization, password):
-    salt = hashlib.sha512(json.dumps({"user": user, "organization": organization}).encode('utf8')).digest()
+    salt = hashlib.sha512(json.dumps({"user": user, "organization": organization, "salt": config['auth']['hash1_key']}).encode('utf8')).digest()
     pwd = hashlib.scrypt(password.encode('utf8'), salt=salt, n=16, r=10, p=10)
     return pwd
 
@@ -27,10 +27,10 @@ def requires_login(f):
            'organization' in session and \
            'hash1' in session:
 
-            conn = login(session['email'], session['organization'], bytes.fromhex(session['hash1']))
+            conn, pgrole = login(session['email'], session['organization'], bytes.fromhex(session['hash1']))
             if conn is not None:
                 with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                    return f(cursor, **kwargs)
+                    return f(cursor, pgrole, **kwargs)
         return redirect(url_for('login'))
     return inside
 
@@ -44,9 +44,10 @@ def login(email, organization, hash1):
             user=pgrole,
             password=hash2.hex()
         )
-        return conn
+        conn.autocommit = True
+        return conn, (pgrole, organization)
     except Exception as e:
         logging.error(str(e), exc_info=1)
         flash('Login failed')
-        return None
+        return None, None
 

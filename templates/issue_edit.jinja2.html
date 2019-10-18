@@ -1,0 +1,30 @@
+{% extends "base.jinja2.html" %}
+{% block title %}Edit {{issue['issue_id']}} - {{issue['title']}}{% endblock %}
+{% block content %}
+    <h1>Edit {{issue['issue_id']}} - {{issue['title']}}</h1>
+    <form method=post>
+      <fieldset>
+        <div>
+          <label for=title>Title</label>
+          <input type=text id=title name=title value="{{issue['title']}}">
+        </div>
+        <div>
+          <label for=points>Points</label>
+          <input type=number id=points name=points value="{{issue['points']}}">
+        </div>
+        <div>
+          <label for=completed_points>Completed Points</label>
+          <input type=number id=completed_points name=completed_points value="{{issue['completed_points']}}">
+        </div>
+        <div>
+          <label for=status>Status</label>
+          <input type=text id=status name=status value="{{issue['status'] or ''}}">
+        </div>
+        <div>
+          <p><label for=description>Description</label></p>
+          <textarea id=description name=description>{{issue['description'] or ''}}</textarea>
+        </div>
+        <input type=submit value="Update">
+      </fieldset>
+    </form>
+{% endblock %}
